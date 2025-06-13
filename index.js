@@ -25,6 +25,7 @@ async function run() {
     // await client.connect();
 
      const UserCollection = client.db('CareDB').collection('users');
+     const PostCollection = client.db('CareDB').collection('posts');
 
       app.post('/users', async (req, res) => {
             const newUser = req.body;
@@ -34,6 +35,18 @@ async function run() {
 
         app.get('/users', async (req, res) => {
             const result = await UserCollection.find().toArray();
+            res.send(result);
+        });
+
+        //send post to datbase
+         app.post('/posts', async (req, res) => {
+            const newPost = req.body;
+            const result = await PostCollection.insertOne(newPost);
+            res.send(result);
+        })
+
+        app.get('/posts', async (req, res) => {
+            const result = await PostCollection.find().toArray();
             res.send(result);
         });
 
