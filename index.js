@@ -46,7 +46,9 @@ async function run() {
         })
 
         app.get('/posts', async (req, res) => {
-            const result = await PostCollection.find().toArray();
+            const search = req.query.search;
+            const query = search? { postTitle: { $regex: search, $options: 'i' } }: {};
+            const result = await PostCollection.find(query).toArray();
             res.send(result);
         });
 
