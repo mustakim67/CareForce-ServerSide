@@ -44,14 +44,20 @@ async function run() {
             const result = await PostCollection.insertOne(newPost);
             res.send(result);
         })
-
+        //get searched post from database 
         app.get('/posts', async (req, res) => {
             const search = req.query.search;
             const query = search? { postTitle: { $regex: search, $options: 'i' } }: {};
             const result = await PostCollection.find(query).toArray();
             res.send(result);
         });
-
+        //delete post from database
+        app.delete('/posts/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await PostCollection.deleteOne(query);
+            res.send(result);
+        })
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
@@ -61,7 +67,6 @@ async function run() {
 
 
 run().catch(console.dir);
-
 app.get('/',(req,res)=>{
     res.send("This is CareForce Server");
 })
