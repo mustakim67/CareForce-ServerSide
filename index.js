@@ -41,6 +41,9 @@ async function run() {
         //send post to datbase
          app.post('/posts', async (req, res) => {
             const newPost = req.body;
+             if (newPost.deadline) {
+        newPost.deadline = new Date(newPost.deadline);
+    }
             const result = await PostCollection.insertOne(newPost);
             res.send(result);
         })
@@ -81,14 +84,16 @@ async function run() {
         //sort 6 post
 app.get('/posts/upcoming', async (req, res) => {
   try {
-    const posts = await PostCollection
-      .find({ deadline: { $gte: new Date() } }) 
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const posts = await PostCollection.find({ deadline: { $gte: today } }) 
       .sort({ deadline: 1 }) 
       .limit(6)
       .toArray();
     res.send(posts);
-  } catch (error) {
-    res.status(500).send({ error: "Failed to fetch upcoming posts" });
+  } 
+  catch (error) {
+    console.log(error);
   }
 });
     // Send a ping to confirm a successful connection
