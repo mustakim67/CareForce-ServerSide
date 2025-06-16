@@ -76,6 +76,21 @@ async function run() {
            
             res.send(result);
         })
+
+
+        //sort 6 post
+app.get('/posts/upcoming', async (req, res) => {
+  try {
+    const posts = await PostCollection
+      .find({ deadline: { $gte: new Date() } }) 
+      .sort({ deadline: 1 }) 
+      .limit(6)
+      .toArray();
+    res.send(posts);
+  } catch (error) {
+    res.status(500).send({ error: "Failed to fetch upcoming posts" });
+  }
+});
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
