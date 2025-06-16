@@ -59,16 +59,21 @@ async function run() {
             res.send(result);
         })
         //update post in database
-        app.put('/posts/:id', async (req, res) => {
+        app.patch('/posts/:id', async (req, res) => {
             const id = req.params.id;
-            const filter = { _id: new ObjectId(id) }
-            const options = { upsert: true };
+        
+            const filter = { _id: new ObjectId(id) };
             const updatedInfo = req.body;
+            if (updatedInfo.deadline) {
+        updatedInfo.deadline = new Date(updatedInfo.deadline);
+    }
+             console.log("Updating ID:", id);
+            console.log("Update Data:", updatedInfo);
             const updatedDoc = {
                 $set: updatedInfo
             }
-            const result = await PostCollection.updateOne(filter, updatedDoc, options);
-
+            const result = await PostCollection.updateOne(filter, updatedDoc);
+           
             res.send(result);
         })
     // Send a ping to confirm a successful connection
