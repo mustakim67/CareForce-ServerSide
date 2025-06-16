@@ -26,6 +26,7 @@ async function run() {
 
      const UserCollection = client.db('CareDB').collection('users');
      const PostCollection = client.db('CareDB').collection('posts');
+     const RequestCollection = client.db('CareDB').collection('requested');
 
       app.post('/users', async (req, res) => {
             const newUser = req.body;
@@ -38,6 +39,20 @@ async function run() {
             res.send(result);
         });
 
+        //send requested post to datbase
+         app.post('/requested', async (req, res) => {
+            const newPost = req.body;
+             if (newPost.deadline) {
+        newPost.deadline = new Date(newPost.deadline);
+    }
+            const result = await RequestCollection.insertOne(newPost);
+            res.send(result);
+        })
+        //get requested post
+          app.get('/requested', async (req, res) => {
+            const result = await RequestCollection.find().toArray();
+            res.send(result);
+        });
         //send post to datbase
          app.post('/posts', async (req, res) => {
             const newPost = req.body;
@@ -54,6 +69,13 @@ async function run() {
             const result = await PostCollection.find(query).toArray();
             res.send(result);
         });
+        //delete request from database
+        app.delete('/requested/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await RequestCollection.deleteOne(query);
+            res.send(result);
+        })
         //delete post from database
         app.delete('/posts/:id', async (req, res) => {
             const id = req.params.id;
