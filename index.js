@@ -39,15 +39,26 @@ async function run() {
             res.send(result);
         });
 
-        //send requested post to datbase
-         app.post('/requested', async (req, res) => {
-            const newPost = req.body;
-             if (newPost.deadline) {
-        newPost.deadline = new Date(newPost.deadline);
-    }
-            const result = await RequestCollection.insertOne(newPost);
-            res.send(result);
-        })
+//send requested data to database and decrese vacancy from post collection
+app.post('/requested', async (req, res) => {
+  const newPost = req.body;
+
+  if (newPost.deadline) {
+    newPost.deadline = new Date(newPost.deadline);
+  }
+    const result = await RequestCollection.insertOne(newPost);
+
+    const postObjectId = new ObjectId(newPost.postId);
+    const originalPost = await PostCollection.findOne({ _id: postObjectId });
+
+    let volunteers = parseInt(originalPost.numberOfVolunteers, 10);
+    await PostCollection.updateOne(
+      { _id: postObjectId },
+      { $set: { numberOfVolunteers: volunteers - 1 } }
+    );
+    res.send(result);
+});
+
         //get requested post
           app.get('/requested', async (req, res) => {
             const result = await RequestCollection.find().toArray();
