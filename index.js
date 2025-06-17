@@ -2,15 +2,43 @@ const dotenv=require('dotenv').config();
 const express= require("express");
 const app=express();
 const cors=require("cors");
+const cookieParser = require('cookie-parser');
 const port = process.env.PORT || 3000;
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.USER_NAME}:${process.env.SECRET_KEY}@cluster0.xqfap2z.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 
 app.use(cors());
+app.use(cookieParser());
+const jwt =require ('jsonwebtoken');
+const admin = require('firebase-admin');
 app.use(express.json());
 
+//firebase service account set up
+const serviceAccount = require("./serviceAccountKey.json");
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+});
 
+
+const verifyJWT = async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader) {
+    return res.status(401).send({ message: 'Unauthorized: No token found' });
+  }
+
+  const token = authHeader.split(' ')[1];
+
+  try {
+    const decoded = await admin.auth().verifyIdToken(token);
+    req.decoded = decoded;
+    next();
+  } 
+  catch (error) {
+    return res.status(401).send({ message: 'Unauthorized: Invalid token' });
+  }
+};
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -59,8 +87,8 @@ app.post('/requested', async (req, res) => {
     res.send(result);
 });
 
-        //get requested post
-          app.get('/requested', async (req, res) => {
+        //get requested post with jwt firebase
+          app.get('/requested',verifyJWT, async (req, res) => {
             const result = await RequestCollection.find().toArray();
             res.send(result);
         });
@@ -73,13 +101,18 @@ app.post('/requested', async (req, res) => {
             const result = await PostCollection.insertOne(newPost);
             res.send(result);
         })
-        //get searched post from database 
+        //get searched post from database  with firebase token
         app.get('/posts', async (req, res) => {
             const search = req.query.search;
             const query = search? { postTitle: { $regex: search, $options: 'i' } }: {};
             const result = await PostCollection.find(query).toArray();
             res.send(result);
         });
+        //get posts for show details
+  app.get('/viewposts',verifyJWT, async (req, res) => {
+    const posts = await PostCollection.find().toArray();
+    res.send(posts);
+  });
         //delete request from database
         app.delete('/requested/:id', async (req, res) => {
             const id = req.params.id;
