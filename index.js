@@ -136,8 +136,8 @@ app.post('/requested', async (req, res) => {
             if (updatedInfo.deadline) {
         updatedInfo.deadline = new Date(updatedInfo.deadline);
     }
-             console.log("Updating ID:", id);
-            console.log("Update Data:", updatedInfo);
+            //  console.log("Updating ID:", id);
+            // console.log("Update Data:", updatedInfo);
             const updatedDoc = {
                 $set: updatedInfo
             }
@@ -159,12 +159,12 @@ app.get('/posts/upcoming', async (req, res) => {
     res.send(posts);
   } 
   catch (error) {
-    console.log(error);
+    
   }
 });
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    // await client.db("admin").command({ ping: 1 });
+    // console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
   }
 }
