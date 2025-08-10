@@ -102,12 +102,52 @@ app.post('/requested', async (req, res) => {
             res.send(result);
         })
         //get searched post from database  with firebase token
-        app.get('/posts', async (req, res) => {
-            const search = req.query.search;
-            const query = search? { postTitle: { $regex: search, $options: 'i' } }: {};
-            const result = await PostCollection.find(query).toArray();
-            res.send(result);
+  app.get('/posts', async (req, res) => {
+    try {
+        const search = req.query.search || '';
+        const sort = req.query.sort || '';
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 8;
+
+        const query = search
+            ? { postTitle: { $regex: search, $options: 'i' } }
+            : {};
+
+        let sortOption = { _id: -1 };
+
+        if (sort === 'Highest') {
+            sortOption = { numberOfVolunteers: -1 };
+        } else if (sort === 'Lowest') {
+            sortOption = { numberOfVolunteers: 1 };
+        }
+
+        const totalPosts = await PostCollection.countDocuments(query);
+
+        const posts = await PostCollection.aggregate([
+            { $match: query },
+            {
+                $addFields: {
+                    numberOfVolunteers: { $toInt: "$numberOfVolunteers" } // convert to number
+                }
+            },
+            { $sort: sortOption },
+            { $skip: (page - 1) * limit },
+            { $limit: limit }
+        ]).toArray();
+
+        res.send({
+            totalPosts,
+            totalPages: Math.ceil(totalPosts / limit),
+            currentPage: page,
+            posts
         });
+    } catch (error) {
+        console.error('Error fetching posts:', error);
+        res.status(500).send({ error: 'Internal Server Error' });
+    }
+});
+
+
         //get posts for show details
   app.get('/viewposts', async (req, res) => {
     const posts = await PostCollection.find().toArray();
