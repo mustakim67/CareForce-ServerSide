@@ -109,7 +109,7 @@ app.post('/requested', async (req, res) => {
             res.send(result);
         });
         //get posts for show details
-  app.get('/viewposts',verifyJWT, async (req, res) => {
+  app.get('/viewposts', async (req, res) => {
     const posts = await PostCollection.find().toArray();
     res.send(posts);
   });
